@@ -1,15 +1,17 @@
 ﻿using OCR.Provider;
 using OCR.Model;
 using Microsoft.Extensions.Configuration;
+using DocumentFormat.OpenXml.Spreadsheet;
 namespace OCR.Service
 {
     public interface IOcrService
     {
-        (int statusCode, string errorMessage) UploadFile(ImageUploadModel model);
-        (int, string) SaveExtractedText();
-        TextExtractedModel GetExtractedText();
+        (int statusCode, string errorMessage) UploadFile(ImageUploadModel model, int UserId);
+        (int, string) SaveExtractedText(int UserId);
+        TextExtractedModel GetExtractedText(int UserId);
         TextDownloadModel DownloadDocx(string extractedText);
         TextDownloadModel DownloadPdf(string extractedText);
+        
 
     }
     public class OcrService : IOcrService
@@ -21,17 +23,17 @@ namespace OCR.Service
             _provider = new OcrProvider(configuration);
         }
 
-        public (int statusCode, string errorMessage) UploadFile(ImageUploadModel model)
+        public (int statusCode, string errorMessage) UploadFile(ImageUploadModel model, int UserId)
         {
-            return _provider.UploadFile(model);
+            return _provider.UploadFile(model, UserId);
         }
-        public (int, string) SaveExtractedText()
+        public (int, string) SaveExtractedText(int UserId)
         {
-            return _provider.SaveExtractedText();
+            return _provider.SaveExtractedText(UserId);
         }
-        public TextExtractedModel GetExtractedText()
+        public TextExtractedModel GetExtractedText(int UserId)
         {
-            return _provider.GetExtractedText();
+            return _provider.GetExtractedText(UserId);
         }
         public TextDownloadModel DownloadDocx(string extractedText)
         {
@@ -41,6 +43,9 @@ namespace OCR.Service
         {
             return _provider.DownloadPdf(extractedText);
         }
+       
+
+        
 
     }
 

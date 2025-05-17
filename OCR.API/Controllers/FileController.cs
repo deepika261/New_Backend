@@ -7,18 +7,18 @@ namespace OCR.API.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    public class FileUploadController : ControllerBase
+    public class FileController : ControllerBase
     {
         private readonly OCRBusinessService _fileManager;
 
-        public FileUploadController(IConfiguration configuration)
+        public FileController(IConfiguration configuration)
         {
             _fileManager = new OCRBusinessService(configuration);
         }
 
         // Upload image
         [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadImage(IFormFile file)
+        public async Task<IActionResult> UploadImage(IFormFile file,int UserId)
         {
             try
             {
@@ -41,13 +41,21 @@ namespace OCR.API.Controllers
                 // Save to DB
                 var model = new ImageUploadModel
                 {
+                    UserId = UserId,
                     FileName = uniqueFileName,
                     FilePath = fullPath
                 };
 
-                var result = _fileManager.UploadFile(model);
-
-                if (result.statusCode >1 && result.statusCode < 0)
+                var result = _fileManager.UploadFile(model, UserId);
+                if (result.statusCode != 1)
+                {
+                    return StatusCode(500, new
+                    {
+                        Status = "Error",
+                        Message = result.errorMessage
+                    });
+                }
+                /*if (result.statusCode >1 && result.statusCode < 0)
                 {
                     return StatusCode(500, new
                     {
@@ -55,10 +63,10 @@ namespace OCR.API.Controllers
                         //SatausCode = result.statusCode,
                         Message = result.errorMessage
                     });
-                }
+                }*/
                 return Ok(new
                 {
-                    StatusCode = "Success",
+                    StatusCode = 1,
                     Message = "File upload successfully!"
 
                 });
@@ -72,17 +80,17 @@ namespace OCR.API.Controllers
 
         // Get extracted Text from DB
         [HttpGet("get-extracted-text")]
-        public IActionResult GetExtractedText()
+        public IActionResult GetExtractedText(int UserId)
         {
             // Step 1: Save extracted text to DB before retrieving
-            var (statusCode, message) = _fileManager.SaveExtractedText();
+            var (statusCode, message) = _fileManager.SaveExtractedText(UserId);
 
             if (statusCode != 0)
             {
                 return StatusCode(500, new { status = "Error", code = statusCode, message });
             }
             // Step 2: Get extracted text from DB
-            var result = _fileManager.GetExtractedText();
+            var result = _fileManager.GetExtractedText(UserId);
 
             if (result.StatusCode == 0)
                 return Ok(result);
@@ -92,10 +100,10 @@ namespace OCR.API.Controllers
 
         // Download Docx
         [HttpGet("download-docx")]
-        public IActionResult DownloadDocx()
+        public IActionResult DownloadDocx(int UserId)
         {
             //Step 2: Get ExtractedText fron the DB
-            var result = _fileManager.GetExtractedText();
+            var result = _fileManager.GetExtractedText(UserId);
           
             if (result == null || string.IsNullOrEmpty(result.ExtractedText))
             {
@@ -110,10 +118,10 @@ namespace OCR.API.Controllers
 
         //Download PDF
         [HttpGet("download-pdf")]
-        public IActionResult DownloadPdf()
+        public IActionResult DownloadPdf(int UserId)
         {
             // Step 1: Get the extracted text from DB
-            var result = _fileManager.GetExtractedText();
+            var result = _fileManager.GetExtractedText(UserId);
 
             if (result == null || string.IsNullOrEmpty(result.ExtractedText))
             {
@@ -125,6 +133,7 @@ namespace OCR.API.Controllers
 
             return File(fileData.FileContent, fileData.ContentType, fileData.FileName);
         }
+        
 
     }
 

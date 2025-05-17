@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Cors.Infrastructure;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Cors.Infrastructure;
+using Microsoft.Extensions.FileProviders;
 using OCR.BusinessService;
 using OCR.Provider;
 using OCR.Service;
@@ -14,9 +16,22 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
 builder.Services.AddScoped<IFileManager, OCRBusinessService>();
 builder.Services.AddScoped<IOcrService, OcrService>();
 builder.Services.AddScoped<IOcrProvider, OcrProvider>();
+
+// Register dependencies
+builder.Services.AddScoped<UserProvider>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UserBusinessService>();
+
+//History dependencies
+builder.Services.AddScoped<IHistoryBusinessService, HistoryBusinessService>();
+builder.Services.AddScoped<IHistoryService, HistoryService>();
+builder.Services.AddScoped<IHistoryProvider, HistoryProvider>();
+
 
 builder.Services.AddCors(options =>
 {
@@ -46,6 +61,20 @@ builder.Services.AddCors(options =>
 
 builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 var app = builder.Build();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+    RequestPath = "/Uploads"
+});
+
+
+/*app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+    RequestPath = "/uploads"
+});*/
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

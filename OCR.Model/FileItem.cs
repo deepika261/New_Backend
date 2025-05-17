@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace OCR.Model
 {
-    public class ImageUploadModel
+    public class FileItem
     {
-        public int UserId { get; set; }
+        public int Id { get; set; }
         public string FileName { get; set; }
         public string FilePath { get; set; }
-        //public string ExtractedText { get; set; }
-
+        public string ExtractedText { get; set; }
+        public DateTime UploadedDate { get; set; }
+        public string Email { get; set; }
     }
-
 }

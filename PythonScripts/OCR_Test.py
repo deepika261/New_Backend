@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import io
 import os
+import sys
 from google.cloud import vision
 from google.cloud.vision_v1 import types
 

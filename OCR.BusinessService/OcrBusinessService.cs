@@ -2,16 +2,18 @@
 using OCR.Service;
 using OCR.Model;
 using Microsoft.Extensions.Configuration;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace OCR.BusinessService
 {
     public interface IFileManager
     {
-        (int statusCode, string errorMessage) UploadFile(ImageUploadModel model);
-        (int, string) SaveExtractedText();
-        TextExtractedModel GetExtractedText();
+        (int statusCode, string errorMessage) UploadFile(ImageUploadModel model,int UserId);
+        (int, string) SaveExtractedText(int UserId);
+        TextExtractedModel GetExtractedText(int UserId);
         TextDownloadModel DownloadDocx(string extractedText);
         TextDownloadModel DownloadPdf(string extractedText);
+
 
 
     }
@@ -24,12 +26,14 @@ namespace OCR.BusinessService
         {
             _service = new OcrService(configuration);
         }
+        
 
-        public (int statusCode, string errorMessage) UploadFile(ImageUploadModel model)
+        
+        public (int statusCode, string errorMessage) UploadFile(ImageUploadModel model, int UserId)
         {
             try 
             {
-                return _service.UploadFile(model);
+                return _service.UploadFile(model, UserId);
             }
             catch (Exception ex)
             {
@@ -37,13 +41,13 @@ namespace OCR.BusinessService
             }
                 
         }
-        public (int, string) SaveExtractedText()
+        public (int, string) SaveExtractedText(int UserId)
         {
-            return _service.SaveExtractedText();
+            return _service.SaveExtractedText(UserId);
         }
-        public TextExtractedModel GetExtractedText()
+        public TextExtractedModel GetExtractedText(int UserId)
         {
-            return _service.GetExtractedText();
+            return _service.GetExtractedText(UserId);
         }
         public TextDownloadModel DownloadDocx(string extractedText)
         {

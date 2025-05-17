@@ -15,10 +15,10 @@ namespace OCR.Provider
 {
     public interface IOcrProvider
     {
-        (int StatusCode, string ErrorMessage) UploadFile(ImageUploadModel model);
-        string RunPythonScript();
-        (int, string) SaveExtractedText();
-        TextExtractedModel GetExtractedText();
+        (int StatusCode, string ErrorMessage) UploadFile(ImageUploadModel model, int UserId);
+        string RunPythonScript(int UserId);
+        (int, string) SaveExtractedText(int UserId);
+        TextExtractedModel GetExtractedText(int UserId);
         TextDownloadModel DownloadDocx(string extractedText);
         TextDownloadModel DownloadPdf(string extractedText);
     }
@@ -31,7 +31,7 @@ namespace OCR.Provider
             _connectionString = configuration.GetConnectionString("DefaultConnection");
         }
 
-        public (int StatusCode, string ErrorMessage) UploadFile(ImageUploadModel model)
+        public (int StatusCode, string ErrorMessage) UploadFile(ImageUploadModel model, int UserId)
         {
             int statusCode = -1;
             string errorMessage = "";
@@ -41,13 +41,14 @@ namespace OCR.Provider
                 using (SqlCommand cmd = new SqlCommand("sp_ocr_insertfile", conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@p_UserId",UserId);
                     cmd.Parameters.AddWithValue("@p_FileName", model.FileName);
                     cmd.Parameters.AddWithValue("@p_FilePath", model.FilePath);
 
-                    SqlParameter outputCode = new SqlParameter("@p_output_status_code", SqlDbType.Int)
+                     SqlParameter outputCode = new SqlParameter("@p_output_status_code", SqlDbType.Int)
                     {
                         Direction = ParameterDirection.Output
-                    };
+                     };
                     SqlParameter outputMsg = new SqlParameter("@p_ouput_error_message", SqlDbType.NVarChar, 100)
                     {
                         Direction = ParameterDirection.Output
@@ -57,7 +58,7 @@ namespace OCR.Provider
                     cmd.Parameters.Add(outputMsg);
 
                     conn.Open();
-                    cmd.ExecuteNonQuery();
+                    cmd.ExecuteNonQuery();  
 
                     statusCode = outputCode.Value != DBNull.Value ? Convert.ToInt32(outputCode.Value) : -1;
                     //errorMessage = outputMsg.Value != DBNull.Value ? outputMsg.Value.ToString() : "";
@@ -92,7 +93,7 @@ namespace OCR.Provider
             }
         }*/
 
-        public string RunPythonScript()
+        public string RunPythonScript(int UserId)
         {
             string FilePath = string.Empty;
             //ImageUploadModel result = new ImageUploadModel();
@@ -101,6 +102,7 @@ namespace OCR.Provider
             using (SqlCommand cmd = new SqlCommand("sp_ocr_getfilepath", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@p_UserId", UserId);
                 cmd.Parameters.Add("@p_output_status_code", SqlDbType.Int).Direction = ParameterDirection.Output;
                 cmd.Parameters.Add("@p_ouput_error_message", SqlDbType.NVarChar, 100).Direction = ParameterDirection.Output;
 
@@ -153,20 +155,20 @@ namespace OCR.Provider
         }
 
 
-        public (int, string) SaveExtractedText()
+        public (int, string) SaveExtractedText(int UserId)
         {
             int statusCode = -1;
             string errorMessage = "";
 
             // Get extracted text by calling Python
-            string extractedText = RunPythonScript();
+            string extractedText = RunPythonScript(UserId);
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             using (SqlCommand cmd = new SqlCommand("sp_ocr_saveextractedtext", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@p_ExtractedText", extractedText);
-
+                cmd.Parameters.AddWithValue("@p_UserId",UserId);
                 cmd.Parameters.Add("@p_output_status_code", SqlDbType.Int).Direction = ParameterDirection.Output;
                 cmd.Parameters.Add("@p_ouput_error_message", SqlDbType.NVarChar, 100).Direction = ParameterDirection.Output;
 
@@ -180,7 +182,7 @@ namespace OCR.Provider
             return (statusCode, errorMessage);
         }
 
-        public TextExtractedModel GetExtractedText()
+        public TextExtractedModel GetExtractedText(int UserId)
         {
             TextExtractedModel result = new TextExtractedModel();
 
@@ -188,6 +190,7 @@ namespace OCR.Provider
             using (SqlCommand cmd = new SqlCommand("sp_ocr_getextractedtext", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@p_UserId",UserId);
                 cmd.Parameters.Add("@p_output_status_code", SqlDbType.Int).Direction = ParameterDirection.Output;
                 cmd.Parameters.Add("@p_ouput_error_message", SqlDbType.NVarChar, 100).Direction = ParameterDirection.Output;
 
@@ -238,7 +241,7 @@ namespace OCR.Provider
                 PdfWriter writer = PdfWriter.GetInstance(document, ms);
 
                 document.Open();
-
+                
                 // Add content
                 document.Add(new Paragraph(extractedText));
 
