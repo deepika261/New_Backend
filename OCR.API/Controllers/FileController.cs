@@ -84,13 +84,13 @@ namespace OCR.API.Controllers
         {
             // Step 1: Save extracted text to DB before retrieving
             var (statusCode, message) = _fileManager.SaveExtractedText(UserId);
-
-            if (statusCode != 0)
+            var result = _fileManager.GetExtractedText(UserId);
+           /* if (statusCode != 0)
             {
                 return StatusCode(500, new { status = "Error", code = statusCode, message });
-            }
+            }*/
             // Step 2: Get extracted text from DB
-            var result = _fileManager.GetExtractedText(UserId);
+            
 
             if (result.StatusCode == 0)
                 return Ok(result);

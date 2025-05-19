@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 using OCR.BusinessService;
 using OCR.Model;
 using static Paket.CredentialProviderResult;
@@ -17,12 +18,15 @@ namespace OCR.API.Controllers
         }
 
         [HttpPost("userregister")]
-        public IActionResult Register([FromBody] UserModel user)
+        public IActionResult Register([FromBody] LoginRequestModel request)
         {
-            int result = _businessService.UserRegister(user);
-            //if (result==)
+            var result = _businessService.UserRegister(request);
+            
 
-            return Ok(new { success = true });
+            if (result.StatusCode == 1)
+                return Ok(new { success = true, message = "User registered successfully" });
+            else
+                return BadRequest(new { success = false, message = result.ErrorMessage });
 
             /*if (_businessService.UserRegister(user))
                 //return Ok(Success = true);
@@ -32,11 +36,11 @@ namespace OCR.API.Controllers
         }
 
         [HttpPost("userlogin")]
-        public IActionResult Login([FromBody] UserModel user)
+        public IActionResult Login([FromBody] LoginRequestModel LoginRequest)
         {
-            var result = _businessService.UserLogin(user.Email, user.Password);
+            var result = _businessService.UserLogin(LoginRequest.Email, LoginRequest.Password);
             if (result != null)
-                return Ok(new { result.UserId});
+                return Ok(new { result.UserId, result.StatusCode, result.ErrorMessage});
             else
                 return Unauthorized("Invalid credentials");
         }

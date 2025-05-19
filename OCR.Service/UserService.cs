@@ -17,7 +17,7 @@ namespace OCR.Service
             _provider = provider;
         }
 
-        public int UserRegister(UserModel user) => _provider.UserRegister(user);
+        public UserModel UserRegister(UserModel user) => _provider.UserRegister(user);
 
 
         public UserModel UserLogin(string email) => _provider.UserLogin(email);

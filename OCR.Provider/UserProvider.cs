@@ -62,9 +62,9 @@ namespace OCR.Provider
         }
 
             public UserModel UserLogin(string email)
-        {
-            int statusCode = -1;
-            string errorMessage = "";
+            {
+            //int statusCode = -1;
+            //string errorMessage = "";
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
@@ -81,27 +81,34 @@ namespace OCR.Provider
                     {
                         if (reader.Read())
                         {
-                            statusCode = Convert.ToInt32(cmd.Parameters["@p_output_status_code"].Value);
-                            errorMessage = cmd.Parameters["@p_output_error_message"].Value.ToString();
-                            return new UserModel
+                            var user = new UserModel
                             {
                                 UserId = reader["UserId"] != DBNull.Value ? Convert.ToInt32(reader["UserId"]) : 0,
                                 Email = email,
-                                PasswordHash = reader["PasswordHash"].ToString(),
-                                StatusCode= statusCode,
-                                ErrorMessage= errorMessage
-                            };
-                        }
-                        else
-                        {
-                            return new UserModel
-                            {
-                                StatusCode = Convert.ToInt32(cmd.Parameters["@p_output_status_code"].Value),
-                                ErrorMessage = cmd.Parameters["@p_output_error_message"].Value.ToString()
+                                PasswordHash = reader["PasswordHash"] != DBNull.Value ? reader["PasswordHash"].ToString() : null,
 
                             };
+                            reader.Close();
+
+                            user.StatusCode = cmd.Parameters["@p_output_status_code"].Value != DBNull.Value
+                                ? Convert.ToInt32(cmd.Parameters["@p_output_status_code"].Value)
+                                : -1;
+                            user.ErrorMessage = cmd.Parameters["@p_output_error_message"].Value?.ToString();
+
+                            return user;
                         }
+                        reader.Close();
+
+                        return new UserModel
+                        {
+                            Email = email,
+                            StatusCode = cmd.Parameters["@p_output_status_code"].Value != DBNull.Value
+                                ? Convert.ToInt32(cmd.Parameters["@p_output_status_code"].Value)
+                                : -1,
+                            ErrorMessage = cmd.Parameters["@p_output_error_message"].Value?.ToString()
+                        };
                     }
+                     
                    
                 }
             }

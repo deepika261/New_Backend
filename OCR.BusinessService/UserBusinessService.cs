@@ -11,6 +11,23 @@ namespace OCR.BusinessService
         {
             _service = service;
         }
+        public LoginResponseModel UserRegister(LoginRequestModel request)
+        {
+            var user = new UserModel
+            {
+                Email = request.Email,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
+            };
+
+            var result = _service.UserRegister(user);
+
+            return new LoginResponseModel
+            {
+                UserId = result.UserId,
+                StatusCode = result.StatusCode,
+                ErrorMessage = result.ErrorMessage
+            };
+        }
 
         public UserModel UserRegister(UserModel user)
         {
