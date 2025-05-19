@@ -63,8 +63,7 @@ builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnC
 var app = builder.Build();
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(Directory.GetCurrentDirectory(), "Uploads")),
+    FileProvider = new PhysicalFileProvider(@"D:\Users\daffny\Desktop\Deepika\OCRSolution\Uploads"),
     RequestPath = "/Uploads"
 });
 

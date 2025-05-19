@@ -12,7 +12,7 @@ namespace OCR.BusinessService
             _service = service;
         }
 
-        public int UserRegister(UserModel user)
+        public UserModel UserRegister(UserModel user)
         {
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.Password); // Hashing
             return _service.UserRegister(user);
