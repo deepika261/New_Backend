@@ -1,0 +1,57 @@
+import io
+import os
+import sys
+from google.cloud import vision
+
+# Set environment variable to your API key file
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "D:/Users/daffny/Desktop/Deepika/handwrittentextconverter-94906516dcd3.json"
+
+def detect_text(image_path):
+    client = vision.ImageAnnotatorClient()
+
+    with io.open(image_path, 'rb') as image_file:
+        content = image_file.read()
+
+    image = vision.Image(content=content)
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+
+    if texts:
+        return texts[0].description
+    else:
+        return "No text detected."
+
+def remove_letter_spacing(text):
+    words = text.split()
+    joined_text = ""
+    temp_word = ""
+
+    for word in words:
+        if len(word) == 1:  # likely a letter in spaced handwriting
+            temp_word += word
+        else:
+            if temp_word:
+                joined_text += temp_word + " "
+                temp_word = ""
+            joined_text += word + " "
+
+    if temp_word:
+        joined_text += temp_word
+
+    return joined_text.strip()
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("Usage: python ocr_processor.py <image_path>")
+        sys.exit(1)
+
+    image_path = sys.argv[1]
+    try:
+        raw_text = detect_text(image_path)
+        print("\nRaw OCR Output:\n", raw_text)
+
+        paragraph = remove_letter_spacing(raw_text)
+        print("\nReconstructed Paragraph:\n", paragraph )
+
+    except Exception as e:
+        print(f"Error: {str(e)}")

@@ -45,7 +45,8 @@ namespace OCR.Provider
                         {
                             
                             FilePath = reader["FilePath"].ToString(),
-                            ExtractedText = reader["ExtractedText"].ToString()
+                            ExtractedText = reader["ExtractedText"].ToString(),
+                            UploadedDate = Convert.ToDateTime(reader["UploadAtDate"])
                         });
 
                     }

@@ -126,7 +126,7 @@ namespace OCR.Provider
             }
 
             string pythonExePath = @"C:\Program Files\Python313\python.exe";
-            string scriptPath = @"D:\Users\daffny\Desktop\Deepika\OCRSolution\PythonScripts\OCR.py";
+            string scriptPath = @"D:\Users\daffny\Desktop\Deepika\OCRSolution\PythonScripts\OCR1.py";
 
             ProcessStartInfo psi = new ProcessStartInfo
             {
