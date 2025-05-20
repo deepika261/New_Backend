@@ -18,13 +18,14 @@ namespace OCR.API.Controllers
 
         // Upload image
         [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadImage(IFormFile file,int UserId)
+        public async Task<IActionResult> UploadImage([FromForm] IFormFile file, [FromForm] int UserId)
         {
             try
             {
                 if (file == null || file.Length == 0)
                     return BadRequest(new { status = "Error", message = "No file uploaded." });
-
+                if (UserId <= 0)
+                    return BadRequest("UserId is invalid");
 
                 string uploadsFolder = @"D:\Users\daffny\Desktop\Deepika\OCRSolution\Uploads";
                 // Directory.CreateDirectory(uploadsFolder); 
@@ -76,31 +77,49 @@ namespace OCR.API.Controllers
                 return StatusCode(500, new { status = "Error", message = "Internal server error: " + ex.Message });
             }
             
-        }      
+        }
 
         // Get extracted Text from DB
         [HttpGet("get-extracted-text")]
-        public IActionResult GetExtractedText(int UserId)
+        public IActionResult GetExtractedText([FromQuery] int UserId)
         {
-            // Step 1: Save extracted text to DB before retrieving
-            var (statusCode, message) = _fileManager.SaveExtractedText(UserId);
-            var result = _fileManager.GetExtractedText(UserId);
-           /* if (statusCode != 0)
+            try
             {
-                return StatusCode(500, new { status = "Error", code = statusCode, message });
-            }*/
-            // Step 2: Get extracted text from DB
-            
+                // Step 1: Save extracted text to DB before retrieving
+                var (statusCode, message) = _fileManager.SaveExtractedText(UserId);
+                var result = _fileManager.GetExtractedText(UserId);
+                /* if (statusCode != 0)
+                 {
+                     return StatusCode(500, new { status = "Error", code = statusCode, message });
+                 }*/
+                // Step 2: Get extracted text from DB
 
-            if (result.StatusCode == 0)
-                return Ok(result);
-            else
-                return StatusCode(500, result);
+
+                if (result.StatusCode == 1)
+                    return Ok(new
+                    {
+                        extractedText = result.ExtractedText,
+                        statusCode = result.StatusCode,
+                        message = result.Message
+                    });
+                else
+                    return StatusCode(500, result);
+            }
+
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    status = "Error",
+                    message = "Exception occurred: " + ex.Message,
+                    stack = ex.StackTrace
+                });
+            }
         }
-
         // Download Docx
         [HttpGet("download-docx")]
-        public IActionResult DownloadDocx(int UserId)
+        public IActionResult DownloadDocx([FromQuery] int UserId)
         {
             //Step 2: Get ExtractedText fron the DB
             var result = _fileManager.GetExtractedText(UserId);
@@ -118,7 +137,7 @@ namespace OCR.API.Controllers
 
         //Download PDF
         [HttpGet("download-pdf")]
-        public IActionResult DownloadPdf(int UserId)
+        public IActionResult DownloadPdf([FromQuery] int UserId)
         {
             // Step 1: Get the extracted text from DB
             var result = _fileManager.GetExtractedText(UserId);
